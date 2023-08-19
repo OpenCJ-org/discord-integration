@@ -3,7 +3,7 @@
 from enum import Enum
 from util import sanitize
 import sys
-
+from syslog import syslog
 
 class GameEvent():
     # These event numbers are hardcoded in opencj_discord.cpp and discord.gsc, do not change (only append)
@@ -25,7 +25,7 @@ class GameEvent():
                     if inst.create(args):
                         return inst
             except Exception as e:
-                print(e)
+                syslog(f'Failed to create event for: {e}')
                 pass # Doesn't exist or failed to create
         return None
 
@@ -52,9 +52,9 @@ class PlayerMessageEvent():
                     self.player_name = name
                     return True
             else:
-                print('A player has an invalid name') # Better not log it now, but useful to know
+                syslog('A player has an invalid name') # Better not log it now, but useful to know
         return False
-    
+
     @property
     def message(self):
         return self._message if self._message else ""

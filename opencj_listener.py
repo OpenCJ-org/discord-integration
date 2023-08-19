@@ -2,6 +2,7 @@
 # It receives events from Discord module and forwards them to the game server
 # It receives events from the game server and forwards them to the Discord module
 
+from syslog import syslog
 import asyncio
 import socket
 import os
@@ -46,14 +47,14 @@ Interface between Discord and the game server
         """
         # New client connected, closing previous since only one game server is expected
         if self.client is not None:
-            print('Unexpected game server client connected, dropping previous')
+            syslog('Unexpected game server client connected, dropping previous')
             self.client.shutdown(socket.SHUT_RDWR)
             self.client.close()
-        
+
         self.client = client
 
         # Process incoming data from client
-        print('Now handling new game server client')
+        syslog('Now handling new game server client')
         loop = asyncio.get_event_loop()
         event = None # Events and their arguments are separated by space
         data = None
@@ -66,7 +67,7 @@ Interface between Discord and the game server
                 # Client disconnected
                 break
 
-            data = data.decode('utf-8')
+            data = data.decode('ascii', errors='ignore')
             # Might receive multiple events at once
             if '\n' in data:
                 lines = data.split('\n')
@@ -87,15 +88,15 @@ Interface between Discord and the game server
                     loop.create_task(self.dc.on_game_event(event))
                 else:
                     # Shouldn't always keep this on, but currently for debugging it's useful
-                    print(f'Flushing: {line}')
+                    syslog(f'Flushing: {line}')
 
 
     async def on_discord_message(self, name, msg):
         if self.client is not None:
             data = f'^8[^7Discord^8]^7 {name}: {msg}'
-            await asyncio.get_event_loop().sock_sendall(self.client, bytes(data, encoding='utf-8'))
+            await asyncio.get_event_loop().sock_sendall(self.client, data.encode('ascii', 'replace'))
         else:
-            print('Can\'t handle Discord event yet, no game server is listening')
+            syslog('Can\'t handle Discord event yet, no game server is listening')
 
 
     async def start(self):
@@ -106,7 +107,7 @@ Interface between Discord and the game server
         if not self.socket_path:
             raise Exception('Running game server listener before setting socket path')
 
-        print('Running game server listener')
+        syslog('Running game server listener')
         # May already be open, in which case try to unlink it
         try:
             os.unlink(self.socket_path)
@@ -116,13 +117,14 @@ Interface between Discord and the game server
 
         # Set up the socket as non-blocking and start listening
         self.server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind(self.socket_path)
         self.server.listen(1)
         self.server.setblocking(False)
 
-        print('Server is listening for connections')
+        syslog('Server is listening for connections')
         loop = asyncio.get_event_loop()
         while True:
             client, _ = await loop.sock_accept(self.server)
-            print(f'New client connected')
+            syslog(f'New client connected')
             loop.create_task(self.handle_client(client))

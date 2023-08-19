@@ -4,6 +4,7 @@ import asyncio
 import discord
 from util import sanitize
 from opencj_events import PlayerMessageEvent, MapStartedEvent, PlayerCountChangedEvent
+from syslog import syslog
 
 
 class OpenCJDiscord(discord.Client):
@@ -35,7 +36,7 @@ Class for Discord integration that will use and be used by the game server liste
         """
 
         if not self.is_ready:
-            print('Received event but not ready yet')
+            syslog('Received event but not ready yet')
             return
 
         channel = self.get_channel(self.channel_id) # server-chat
@@ -50,7 +51,7 @@ Class for Discord integration that will use and be used by the game server liste
             status = f'{self.map_name} ({self.player_count})' if self.map_name else f'unknown ({self.player_count})'
             await self.change_presence(activity=discord.Game(name=status))
         else:
-            print('Unhandled event: ' + event)
+            syslog(f'Unhandled event: {event}')
 
 
     async def on_ready(self):
@@ -58,7 +59,7 @@ Class for Discord integration that will use and be used by the game server liste
     Gets called when the Discord bot is ready to roll
         """
         self.is_ready = True
-        print(f'Logged in as {self.user}')
+        syslog(f'Logged in as {self.user}')
 
 
     async def on_message(self, message):
@@ -76,12 +77,13 @@ Class for Discord integration that will use and be used by the game server liste
                 if message.channel.id == self.channel_id:
                     # Check if a handle to the game server listener is available yet
                     if not self.gameserver:
-                        print('Received a message but game server listener isn\'t ready yet')
+                        syslog('Received a message but game server listener isn\'t ready yet')
                         return
 
                     # Apply some basic restrictions
                     msg = sanitize(message.content)
                     msg = msg[:128] if len(msg) > 128 else msg
+
                     name = sanitize(message.author.display_name)
                     name = name[:32] if len(name) > 32 else name
                     if len(msg) > 0 and len(name) >= 3:
