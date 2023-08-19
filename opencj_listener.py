@@ -94,7 +94,7 @@ Interface between Discord and the game server
     async def on_discord_message(self, name, msg):
         if self.client is not None:
             data = f'^8[^7Discord^8]^7 {name}: {msg}'
-            await asyncio.get_event_loop().sock_sendall(self.client, data.encode('ascii', 'replace'))
+            await asyncio.get_event_loop().sock_sendall(self.client, data.encode('ascii', 'ignore'))
         else:
             syslog('Can\'t handle Discord event yet, no game server is listening')
 
