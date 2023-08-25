@@ -3,7 +3,7 @@
 import asyncio
 import discord
 from util import sanitize
-from opencj_events import PlayerMessageEvent, MapStartedEvent, PlayerCountChangedEvent
+from opencj_events import PlayerJoinedEvent, PlayerLeftEvent, PlayerMessageEvent, MapStartedEvent, PlayerCountChangedEvent, RunFinishedEvent
 from syslog import syslog
 
 
@@ -42,10 +42,22 @@ Class for Discord integration that will use and be used by the game server liste
         channel = self.get_channel(self.channel_id) # server-chat
         if isinstance(event, PlayerMessageEvent):
             await channel.send(f'**{event.player_name}**: {event.message}')
+        elif isinstance(event, PlayerJoinedEvent):
+            if event.player_name is not None:
+                await channel.send(f'**{event.player_name}** has joined the game')
+        elif isinstance(event, PlayerLeftEvent):
+            if event.player_name is not None:
+                await channel.send(f'**{event.player_name}** has left the game')
+        elif isinstance(event, RunFinishedEvent):
+            if event.player_name is not None:
+                await channel.send(f'**{event.player_name}** finished {event.map_name}\'s {event.route_name} route in {event.time_str}')
         elif isinstance(event, MapStartedEvent):
-            self.map_name = event.map_name
-            status = f'{self.map_name} ({self.player_count})' if self.player_count is not None else f'{self.map_name} (?)'
-            await self.change_presence(activity=discord.Game(name=status))
+            # This event map be re-transmitted in case of a reconnect. Don't want to show the message again though.
+            if event.map_name != self.map_name:
+                self.map_name = event.map_name
+                status = f'{self.map_name} ({self.player_count})' if self.player_count is not None else f'{self.map_name} (?)'
+                await self.change_presence(activity=discord.Game(name=status))
+                await channel.send(f'**Map changed to** {self.map_name}')
         elif isinstance(event, PlayerCountChangedEvent):
             self.player_count = event.player_count
             status = f'{self.map_name} ({self.player_count})' if self.map_name else f'unknown ({self.player_count})'
