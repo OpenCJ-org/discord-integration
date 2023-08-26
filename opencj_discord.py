@@ -44,10 +44,10 @@ Class for Discord integration that will use and be used by the game server liste
             await channel.send(f'**{event.player_name}**: {event.message}')
         elif isinstance(event, PlayerJoinedEvent):
             if event.player_name is not None:
-                await channel.send(f'```fix\ **{event.player_name}** has joined the game```')
+                await channel.send(f'**{event.player_name}** has joined the game')
         elif isinstance(event, PlayerLeftEvent):
             if event.player_name is not None:
-                await channel.send(f'```fix\ **{event.player_name}** has left the game```')
+                await channel.send(f'**{event.player_name}** has left the game')
         elif isinstance(event, RunFinishedEvent):
             if event.player_name is not None:
                 await channel.send(f'**{event.player_name}** finished ``{event.map_name}\'s - {event.route_name}`` route in ``{event.time_str}``')
