@@ -50,7 +50,7 @@ Class for Discord integration that will use and be used by the game server liste
                 await channel.send(f'**{event.player_name}** has left the game')
         elif isinstance(event, RunFinishedEvent):
             if event.player_name is not None:
-                await channel.send(f'**{event.player_name}** finished {event.map_name}\'s {event.route_name} route in {event.time_str}')
+                await channel.send(f'**{event.player_name}** finished ``{event.map_name} - {event.route_name}`` in ``{event.time_str}``')
         elif isinstance(event, MapStartedEvent):
             # This event map be re-transmitted in case of a reconnect. Don't want to show the message again though.
             if event.map_name != self.map_name:
