@@ -40,9 +40,9 @@ class PlayerMessageEvent():
         str = ' '.join(args)
         if ';' in str:
             parts = str.split(';')
-            self.name = get_clean_name(parts[0])
+            self.player_name = get_clean_name(parts[0])
             self.message = get_clean_message(parts[1] if len(parts) == 1 else ';'.join(parts[1:]))
-            return self.name is not None and self.message is not None
+            return self.player_name is not None and self.message is not None
         return False
 
     @property
@@ -64,10 +64,9 @@ class PlayerMessageEvent():
 
 class PlayerJoinedEvent():
     def create(self, args):
-        if len(args) == 1:
-            self.player_name = args[0]
-            return True
-        return False
+        str = ' '.join(args)
+        self.player_name = get_clean_name(str)
+        return self.player_name is not None
 
     @property
     def player_name(self):
@@ -80,10 +79,9 @@ class PlayerJoinedEvent():
 
 class PlayerLeftEvent():
     def create(self, args):
-        if len(args) == 1:
-            self.player_name = args[0]
-            return True
-        return False
+        str = ' '.join(args)
+        self.player_name = get_clean_name(str)
+        return self.player_name is not None
 
     @property
     def player_name(self):
