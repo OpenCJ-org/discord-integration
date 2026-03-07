@@ -4,8 +4,9 @@ import asyncio
 import discord
 from util import sanitize
 from opencj_events import PlayerJoinedEvent, PlayerLeftEvent, PlayerMessageEvent, MapStartedEvent, PlayerCountChangedEvent, RunFinishedEvent
-from syslog import syslog
+import logging
 
+logger = logging.getLogger(__name__)
 
 class OpenCJDiscord(discord.Client):
     """
@@ -36,7 +37,7 @@ Class for Discord integration that will use and be used by the game server liste
         """
 
         if not self.is_ready:
-            syslog('Received event but not ready yet')
+            logger.info('Received event but not ready yet')
             return
 
         channel = self.get_channel(self.channel_id) # server-chat
@@ -63,7 +64,7 @@ Class for Discord integration that will use and be used by the game server liste
             status = f'{self.map_name} ({self.player_count})' if self.map_name else f'unknown ({self.player_count})'
             await self.change_presence(activity=discord.Game(name=status))
         else:
-            syslog(f'Unhandled event: {event}')
+            logger.info(f'Unhandled event: {event}')
 
 
     async def on_ready(self):
@@ -71,7 +72,7 @@ Class for Discord integration that will use and be used by the game server liste
     Gets called when the Discord bot is ready to roll
         """
         self.is_ready = True
-        syslog(f'Logged in as {self.user}')
+        logger.info(f'Logged in as {self.user}')
 
 
     async def on_message(self, message):
@@ -89,7 +90,7 @@ Class for Discord integration that will use and be used by the game server liste
                 if message.channel.id == self.channel_id:
                     # Check if a handle to the game server listener is available yet
                     if not self.gameserver:
-                        syslog('Received a message but game server listener isn\'t ready yet')
+                        logger.info('Received a message but game server listener isn\'t ready yet')
                         return
 
                     # Apply some basic restrictions

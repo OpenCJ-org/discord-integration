@@ -21,12 +21,11 @@ class OpenCJDiscord:
 async def test(dc):
     # Set up the client socket
     print('Setting up client socket...')
-    socket_path = '/tmp/opencj_events_cod4'
-    client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.setblocking(False)
     try:
         loop = asyncio.get_event_loop()
-        await loop.sock_connect(client, socket_path)
+        await loop.sock_connect(client, ('127.0.0.1', 28961))
     except FileNotFoundError as fnfe:
         raise Exception('Could not connect to game server listener')
 
@@ -63,7 +62,7 @@ async def main():
     task_listener.cancel()
 
     # Verify the data is as expected
-    expected_msg = '[Discord] test: this is an injected message'
+    expected_msg = '^8[^7Discord^8]^7 test: this is an injected message'
     if data != expected_msg:
         raise Exception(f'Expected:\n{expected_msg}\nGot\n{data}')
     else:

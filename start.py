@@ -4,7 +4,9 @@ import discord
 from opencj_listener import OpenCJListener
 from opencj_discord import OpenCJDiscord, start_bot
 import sys
+import logging
 
+logging.basicConfig(level=logging.INFO)
 
 async def main():
     if len(sys.argv) < 2:

@@ -3,7 +3,9 @@
 from enum import Enum
 from util import get_clean_message, get_clean_name, sanitize
 import sys
-from syslog import syslog
+import logging
+
+logger = logging.getLogger(__name__)
 
 class GameEvent():
     # These event numbers are hardcoded in opencj_discord.cpp and discord.gsc, do not change (only append)
@@ -29,7 +31,7 @@ class GameEvent():
                     if inst.create(args):
                         return inst
             except Exception as e:
-                syslog(f'Failed to create event for: {e}')
+                logger.info(f'Failed to create event for: {e}')
                 pass # Doesn't exist or failed to create
         return None
 
